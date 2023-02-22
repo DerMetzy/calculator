@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentDisplay = document.getElementById("currentDisplay")
     let previousDisplay = document.getElementById("previousDisplay")
     let decimal = document.querySelector(".decimal")
+    let minus = document.getElementById("minus")
 
     digits.forEach((digit) => digit.addEventListener("click", (e) => {
         
@@ -19,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function() {
         currentDisplay.textContent = currentNum;
     }))
 
-//TODO Premendo un tasto operatore, previousDisplay deve mostare il risultato dell'operazione tra prevNum e curNum
     operators.forEach((op) => op.addEventListener("click", (e) => {
         if (operator != "") {
             compute();
@@ -77,7 +77,12 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     })
 
-
+    minus.addEventListener("click", (e) => {
+        if (!currentNum.includes("-")) {
+            currentNum = (Number(currentNum) * (-1)).toString();
+            currentDisplay.textContent = "-" + currentDisplay.textContent;
+        }
+    })
 });
 
 function getNum(num) {
