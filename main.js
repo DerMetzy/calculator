@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let minus = document.getElementById("minus")
 
     digits.forEach((digit) => digit.addEventListener("click", (e) => {
-        
         getNum(e.target.textContent)
         currentDisplay.textContent = currentNum;
     }))
@@ -52,19 +51,11 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 
     clear.addEventListener("click", (e) => {
-        currentNum = "";
-        previousNum = "";
-        previousDisplay.textContent = previousNum;
-        currentDisplay.textContent = currentNum;
-        operator = "";
+        clearNum();
     })
 
     canc.addEventListener("click", (e) => {
-        currentDisplay.innerText = currentDisplay.innerText.slice(0, -1);
-    
-        if (currentDisplay.innerText == "") {
-            currentDisplay.innerText = "0";
-        };
+        delNum()
     })
 
     decimal.addEventListener("click", (e) => {
@@ -78,10 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 
     minus.addEventListener("click", (e) => {
-        if (!currentNum.includes("-")) {
-            currentNum = (Number(currentNum) * (-1)).toString();
-            currentDisplay.textContent = "-" + currentDisplay.textContent;
-        }
+        addSign()
     })
 });
 
@@ -89,13 +77,17 @@ function getNum(num) {
     if (currentNum.length > 8) {
         alert("You have reached maximum number size");
         return;
-    }
+    } if (currentDisplay.textContent.includes("-")) {
+        currentNum += num
+        if (Number(currentNum < 0)) return;
+        currentNum = (Number(currentNum) * (-1)).toString(); 
+    } else {
     currentNum += num;
+    }
 }
 
 function getOperator(op) {
     operator = op;
-    
 }
 
 function compute() {
@@ -108,7 +100,7 @@ function compute() {
         result = previousNum - currentNum;
     } else if (operator === "*") {
         result = previousNum * currentNum; 
-    } else if (operator === "/") {
+    } else if (operator === "÷" || operator === "/") {
         if (currentNum == "0") {
             alert ("It is not allowed to divide by zero")
             return; 
@@ -129,3 +121,95 @@ function compute() {
 function roundNum(num) {
     return Math.round((num + Number.EPSILON) * 100) / 100;
 };
+
+function delNum() {
+    currentDisplay.innerText = currentDisplay.innerText.slice(0, -1);
+    
+    if (currentDisplay.innerText == "") {
+        currentDisplay.innerText = "0";
+    };
+    currentNum = currentNum.slice(0, -1);
+}
+
+function clearNum() {
+    currentNum = "";
+    previousNum = "";
+    previousDisplay.textContent = previousNum;
+    currentDisplay.textContent = currentNum;
+    operator = "";
+}
+
+//FIXME: addS is triggered before getNum 
+function addSign() {
+    if (!currentNum.includes("-")) {
+        currentDisplay.textContent = "-" + currentNum;
+        currentNum = (Number(currentNum) * (-1)).toString();
+    }
+}
+
+//keyboard listener
+document.addEventListener("keypress", (e) => {
+//get and display number
+    if (!isNaN(e.key ) ) {   
+        getNum(e.key)
+        currentDisplay.textContent = currentNum;
+    }
+//get and display operator and compute intermediate result 
+//listen for minus sign when currentNum is empty to trigger addSign
+    if (e.key == "-" && currentNum == "") {
+        addSign()
+    } else if (e.key.match(/[\+\-\*\/\(\)]/)) {
+        if (operator != "") {
+            compute();
+        } else {
+            previousNum = roundNum(Number(currentNum)).toString();
+        }
+        
+        getOperator(e.key)
+        
+        previousDisplay.textContent = previousNum + " " + operator;
+        currentDisplay.textContent = "";
+        
+        currentNum = "";
+    
+    }
+//enter keypress triggers "equal"
+    if (e.key == "Enter") {
+        if (currentNum != "" && previousNum != "") {   
+            compute();
+            currentDisplay.textContent = previousNum;
+            previousDisplay.textContent = "";
+            currentNum = previousNum;
+            operator = "";
+         } 
+         if (currentNum != "" && previousNum == "") {
+            currentDisplay.textContent = currentNum;
+            previousNum = currentNum;
+            currentNum = "";
+            operator = "";
+         }
+    }
+//comma and fullstop keypress both trigger "decimal"
+    if (e.key == ("." || ",")) {
+        if (currentNum.includes(".")) {
+            alert("You already typed a decimal separator.")
+            return
+        } else {
+            currentNum += ".";
+            currentDisplay.textContent = currentNum;
+        }
+    }
+})
+
+//listen for backspace to trigger delete
+document.addEventListener("keydown", (e) => {
+    console.log(e.key)
+    if (e.key == "Backspace") {
+        delNum()
+    }
+
+//listen for del to trigger AC
+    if (e.key  == "Delete") {
+        clearNum()
+    }
+})
